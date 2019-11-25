@@ -1,0 +1,55 @@
+<!--
+    Meetup Location Finder
+    Written by Andrew Eldridge
+    11/23/2019
+    Utilizes the Google Maps JavaScript API to find the closest meetup location to two or more provided locations.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Meetup Location Finder</title>
+    <link rel="shortcut icon" href="images/favicon.png">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+    <link href="https://fonts.googleapis.com/css?family=Quicksand&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="title">Meetup Location Finder</div>
+    <div id="input-container">
+        <div id="inner-input-container">
+            <b>From:</b>
+            <br>
+            <input id="start" type="text" placeholder="Starting location...">
+            <br>
+            <b>To:</b>
+            <br>
+            <input id="end" type="text" placeholder="Destination...">
+            <br>
+            <b>By:</b>
+            <br>
+            <select id="travel-mode">
+                <option value="DRIVING">Driving</option>
+                <option value="WALKING">Walking</option>
+                <option value="BICYCLING">Bicycling</option>
+                <option value="TRANSIT">Transit</option>
+            </select>
+            <select id="transit-mode">
+                <option value="BUS">Bus</option>
+                <option value="RAIL">Rail</option>
+                <option value="SUBWAY">Subway</option>
+                <option value="TRAIN">Train</option>
+                <option value="TRAM">Tram</option>
+            </select>
+            <button class="btn btn-primary" id="update-params">Update Parameters</button>
+            <br>
+        </div>
+    </div>
+    <div id="map"></div>
+    <div id="result"></div>
+</body>
+<script src="scripts/main.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDfPigTDTgFwz93K4EpPkDkd9qBVsorYGY&callback=initMap" async defer></script>
+</html>

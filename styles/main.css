@@ -1,0 +1,50 @@
+#title {
+    font-family: 'Quicksand', sans-serif;
+    padding: 10px;
+    padding-bottom: 0;
+    font-size: 22px;
+}
+#input-container {
+    padding: 20px;
+    padding-left: 10px;
+    line-height: 30px;
+    width: 100%;
+    background-color: #eee;
+}
+#inner-input-container {
+    max-width: 500px;
+    padding: 5px;
+    border: 1px solid #333;
+    position: relative;
+}
+.btn {
+    margin-left: 10px;
+    margin-bottom: 7px;
+    float: right;
+}
+#input-container input {
+    margin-bottom: 20px;
+}
+#input-container input, select {
+    padding: 5px;
+    font-size: 20px;
+    color: #666;
+    width: 300px;
+}
+#transit-mode {
+    height: 0;
+    padding: 0;
+    transition: height 240ms, padding 240ms;
+    -webkit-transition: height 240ms, padding 240ms;
+}
+#update-params {
+    position: absolute;
+    bottom: 0;
+    right: 5px;
+}
+#map {
+    height: 400px;
+}
+#result {
+    padding: 25px;
+}

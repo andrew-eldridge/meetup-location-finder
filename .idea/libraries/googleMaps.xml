@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="googleMaps" type="javaScript">
+    <properties>
+      <sourceFilesUrls>
+        <item url="file://$PROJECT_DIR$/../google_maps_api_v3.js" />
+      </sourceFilesUrls>
+    </properties>
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/../google_maps_api_v3.js" />
+    </CLASSES>
+    <SOURCES />
+  </library>
+</component>
