@@ -1,26 +1,79 @@
 // DOM elements
+let start1 = document.getElementById("start1");
+let start2 = document.getElementById("start2");
+let destination = document.getElementById("destination");
 let travelMode = document.getElementById("travel-mode");
 let transitMode = document.getElementById("transit-mode");
 
+// Global variables
+let start1Coords = null;
+let start2Coords = null;
+let midpoint = null;
+
 // Initialize Google Maps API objects
 function initMap() {
-    // Initialize directions service, renderer, and map
-    let directionsService = new google.maps.DirectionsService();
-    let directionsRenderer = new google.maps.DirectionsRenderer();
+    // Full view of United States
     let options = {
         zoom: 4,
         center: {lat:39.8283, lng:-98.5795}
     };
+    // Initialize map and services
     let map = new google.maps.Map(document.getElementById("map"), options);
+    let directionsService = new google.maps.DirectionsService();
+    let directionsRenderer = new google.maps.DirectionsRenderer();
+    let placesService = new google.maps.places.PlacesService(map);
+    let geocoderService = new google.maps.Geocoder();
     // Set map for directions renderer
     directionsRenderer.setMap(map);
-
-    // Handler for changes to input elements
+    // When user clicks "Update Parameters" run the following callback...
+    let onUpdateHandler = function() {
+        // Convert starting location addresses to coordinates, then calculate midpoint and set map's center
+        promise = calculateOriginCoordinates(geocoderService).then(function(){
+            d = new $.Deferred();
+            midpoint = google.maps.geometry.spherical.interpolate(start1Coords, start2Coords, 0.5);
+            map.setCenter(midpoint);
+            map.setZoom(7);
+            d.resolve();
+            return d.promise();
+        });
+        // Construct request for nearby destination locations
+        let request = {
+            query: document.getElementById("destination").value,
+            fields: ["name", "geometry", "formatted_address", "permanently_closed"]
+        };
+        // Find destinations near query
+        let potentialDestinations = null;
+        placesService.findPlaceFromQuery(request, function(response, status){
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                for (let i=0; i<response.length; i++) {
+                    // Skip locations that are permanently closed
+                    if (response[i].permanently_closed) {
+                        continue;
+                    }
+                    // Scrape needed details from response
+                    let props = {
+                        name: response[i].name,
+                        rating: response[i].rating,
+                        website: response[i].website,
+                        address: response[i].formatted_address,
+                        icon: response[i].icon,
+                        coords: response[i].geometry.location,
+                    };
+                    // Add marker for potential destination
+                    addMarker(props);
+                }
+                map.setCenter(response[0].geometry.location);
+            } else {
+                window.alert("Unable to fulfill request. Error: " + status);
+            }
+        })
+    };
+    /*
     let onUpdateHandler = function() {
         calculateAndDisplayRoute(directionsService, directionsRenderer);
     };
+     */
     document.getElementById("update-params").addEventListener("click", onUpdateHandler);
-
     // Add marker to map
     function addMarker(props) {
         // Create a marker instance
@@ -29,14 +82,28 @@ function initMap() {
             map: map
         });
         // Set custom icon image if present
-        if (props.iconImage) {
-            marker.setIcon(iconImage);
+        if (props.icon) {
+            marker.setIcon(props.icon);
         }
         // Create an info window if details are provided
-        if (props.content) {
+        if (props.name || props.rating || props.website || props.address) {
+            // Concatenate location details
+            let content = "";
+            if (props.name) {
+                content += "<h3>" + props.name + "</h3>";
+            }
+            if (props.rating) {
+                content += "<h6>" + props.rating + " / 5</h6>";
+            }
+            if (props.website) {
+                content += "<p><a href='" + props.website + "'>" + props.website + "</a></p>";
+            }
+            if (props.address) {
+                content += "<p>" + props.address + "</p>";
+            }
             // Create an info window instance
             let infoWindow = new google.maps.InfoWindow({
-                content: props.content
+                content: content
             });
             // When marker is clicked, open info window
             marker.addListener("click", function(){
@@ -46,15 +113,42 @@ function initMap() {
     }
 }
 
+// Calculate origin coordinates
+function calculateOriginCoordinates(geocoderService) {
+    d = new $.Deferred();
+    start1Coords = convertAddressToCoordinates(geocoderService, start1.value);
+    start2Coords = convertAddressToCoordinates(geocoderService, start2.value);
+    d.resolve();
+    return d.promise();
+}
+
+// Convert an address input to latLng coordinates
+function convertAddressToCoordinates(geocoderService, address) {
+    let geocodeRequest = {
+        address: address
+    };
+    geocoderService.geocode(geocodeRequest, function(response, status){
+        if (status === google.maps.GeocoderStatus.OK) {
+            window.alert("returning latlng: " + response[0].geometry.location);
+            console.log(response[0].geometry.location);
+            return response[0].geometry.location;
+        } else {
+            window.alert("Unable to fulfill request. Error: " + status);
+            return null;
+        }
+    });
+}
+
 // Display a travel route based on query (starting point and destination)
 function calculateAndDisplayRoute(directionsService, directionsRenderer) {
-    // Calculate route (params: trip description, callback function)
+    // Set transit options if necessary
     let transitOptions = undefined;
     if (transitMode.offsetHeight !== 0) {
         transitOptions = {
             modes: [transitMode.value]
         };
     }
+    // Set route
     directionsService.route(
         {
             origin: {query: document.getElementById("start").value},
@@ -63,11 +157,12 @@ function calculateAndDisplayRoute(directionsService, directionsRenderer) {
             transitOptions: transitOptions
         },
         function(response, status) {
-            if (status === "OK") {
+            if (status === google.maps.DirectionsStatus.OK) {
+                // Iterate through legs/steps of route and append to result string
                 let resultString = "";
                 let route = response.routes[0];
                 let routeLength = 0;
-                // don't forget copyrights
+                console.log(route.copyrights);
                 let legs = route.legs;
                 for (let j=0; j<legs.length; j++) {
                     let steps = legs[j].steps;
@@ -82,9 +177,11 @@ function calculateAndDisplayRoute(directionsService, directionsRenderer) {
                 let mins = Math.floor(routeLength/60);
                 routeLength = routeLength%60;
                 let secs = routeLength;
+                // Construct HTML
                 let routeLengthStr = "<h3>Estimated Time: " + hrs + " hrs " + mins + " mins " + secs + " secs</h3>";
                 resultString = routeLengthStr + resultString;
                 document.getElementById("result").innerHTML = resultString;
+                // Set directions renderer
                 directionsRenderer.setDirections(response);
             } else {
                 window.alert("Unable to fulfill request. Error: " + status);
@@ -93,15 +190,40 @@ function calculateAndDisplayRoute(directionsService, directionsRenderer) {
     );
 }
 
+/*
+// Convert from degrees to radians
+function degToRad(x) {
+    return x * Math.PI / 180;
+}
+
+// Calculate the distance (in meters) between two coordinate sets
+function getDistance(p1, p2) {
+    let R = 6378137;
+    let dLat = degToRad(p2.lat() - p1.lat());
+    let dLong = degToRad(p2.lng() - p1.lng());
+    let a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(rad(p1.lat())) * Math.cos(rad(p2.lat())) *
+        Math.sin(dLong / 2) * Math.sin(dLong / 2);
+    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+ */
+
 // If travel mode is switched to transit, display transit modes
 travelMode.addEventListener("change", function(){
     if (travelMode.value === "TRANSIT") {
-        transitMode.style.height = "auto";
-        transitMode.style.padding = "5px";
+        transitMode.style.display = "block";
         travelMode.style.marginBottom = "10px";
+        setTimeout(function(){
+            transitMode.style.height = "auto";
+            transitMode.style.padding = "5px";
+        }, 10);
     } else {
         transitMode.style.height = "0";
         transitMode.style.padding = "0";
-        travelMode.style.marginBottom = "0";
+        setTimeout(function(){
+            transitMode.style.display = "none";
+            travelMode.style.marginBottom = "0";
+        }, 360);
     }
 });

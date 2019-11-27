@@ -18,15 +18,18 @@
 </head>
 <body>
     <div id="title">Meetup Location Finder</div>
-    <div id="input-container">
-        <div id="inner-input-container">
+    <div id="border"></div>
+    <div id="subtitle">Find the most convenient location to arrange a meeting given two separate starting locations. Simply enter starting points, desired destination (such as a restaurant or establishment name), and a mode of transportation.</div>
+    <div id="content-container">
+        <div id="input-container">
             <b>From:</b>
             <br>
-            <input id="start" type="text" placeholder="Starting location...">
+            <input id="start1" type="text" placeholder="Starting location 1...">
+            <input  id="start2" type="text" placeholder="Starting location 2...">
             <br>
             <b>To:</b>
             <br>
-            <input id="end" type="text" placeholder="Destination...">
+            <input id="destination" type="text" placeholder="Destination...">
             <br>
             <b>By:</b>
             <br>
@@ -46,10 +49,11 @@
             <button class="btn btn-primary" id="update-params">Update Parameters</button>
             <br>
         </div>
+        <div id="map"></div>
     </div>
-    <div id="map"></div>
     <div id="result"></div>
 </body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="scripts/main.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDfPigTDTgFwz93K4EpPkDkd9qBVsorYGY&callback=initMap" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDfPigTDTgFwz93K4EpPkDkd9qBVsorYGY&callback=initMap&libraries=places,geometry" async defer></script>
 </html>

@@ -1,50 +1,72 @@
+/* Format title and subtitle divs */
 #title {
     font-family: 'Quicksand', sans-serif;
     padding: 10px;
-    padding-bottom: 0;
     font-size: 22px;
 }
-#input-container {
+#border {
+    height: 0;
+    width: 300px;
+    margin-left: 10px;
+    border-bottom: 1px solid #666;
+}
+#subtitle {
+    font-family: 'Quicksand', sans-serif;
+    padding: 10px;
+    font-size: 18px;
+    color: #333;
+}
+/* Content container (gray rectangle) */
+#content-container {
+    display: flex;
     padding: 20px;
     padding-left: 10px;
     line-height: 30px;
     width: 100%;
     background-color: #eee;
 }
-#inner-input-container {
+/* Input container (outlined box) */
+#input-container {
     max-width: 500px;
     padding: 5px;
     border: 1px solid #333;
     position: relative;
 }
-.btn {
-    margin-left: 10px;
-    margin-bottom: 7px;
-    float: right;
-}
+/* Space out input elements */
 #input-container input {
     margin-bottom: 20px;
 }
+/* Decrease margin between the starting location inputs */
+#input-container #start1 {
+    margin-bottom: 10px;
+}
+/* Format input elements */
 #input-container input, select {
     padding: 5px;
     font-size: 20px;
     color: #666;
     width: 300px;
 }
+/* Transit mode input element transitions between visible/invisible depending on travel mode */
 #transit-mode {
     height: 0;
     padding: 0;
-    transition: height 240ms, padding 240ms;
-    -webkit-transition: height 240ms, padding 240ms;
+    transition: height 360ms, padding 360ms;
+    -webkit-transition: height 360ms, padding 360ms;
 }
+/* Position "update params" button in bottom-right of inner input container */
 #update-params {
     position: absolute;
-    bottom: 0;
+    bottom: 5px;
     right: 5px;
 }
+/* Set dimensions of Google map */
 #map {
-    height: 400px;
+    margin-left: 20px;
+    width: 100%;
+    height: 450px;
 }
+/* Format the navigation results */
 #result {
     padding: 25px;
 }
