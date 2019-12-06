@@ -51,6 +51,7 @@
 #transit-mode {
     height: 0;
     padding: 0;
+    display: none;
     transition: height 360ms, padding 360ms;
     -webkit-transition: height 360ms, padding 360ms;
 }

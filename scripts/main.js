@@ -5,11 +5,6 @@ let destination = document.getElementById("destination");
 let travelMode = document.getElementById("travel-mode");
 let transitMode = document.getElementById("transit-mode");
 
-// Global variables
-let start1Coords = null;
-let start2Coords = null;
-let midpoint = null;
-
 // Initialize Google Maps API objects
 function initMap() {
     // Full view of United States
@@ -17,30 +12,35 @@ function initMap() {
         zoom: 4,
         center: {lat:39.8283, lng:-98.5795}
     };
+
     // Initialize map and services
     let map = new google.maps.Map(document.getElementById("map"), options);
     let directionsService = new google.maps.DirectionsService();
     let directionsRenderer = new google.maps.DirectionsRenderer();
     let placesService = new google.maps.places.PlacesService(map);
     let geocoderService = new google.maps.Geocoder();
-    // Set map for directions renderer
     directionsRenderer.setMap(map);
+
     // When user clicks "Update Parameters" run the following callback...
-    let onUpdateHandler = function() {
+    async function onUpdateHandler() {
         // Convert starting location addresses to coordinates, then calculate midpoint and set map's center
-        promise = calculateOriginCoordinates(geocoderService).then(function(){
-            d = new $.Deferred();
-            midpoint = google.maps.geometry.spherical.interpolate(start1Coords, start2Coords, 0.5);
-            map.setCenter(midpoint);
-            map.setZoom(7);
-            d.resolve();
-            return d.promise();
+        let startCoords = await new Promise(async(resolve, reject) => {
+            let start1Coords = await new Promise(async(resolve, reject) => {
+                resolve(await convertAddressToCoordinates(start1.value));
+            });
+            let start2Coords = await new Promise(async(resolve, reject) => {
+                resolve(await convertAddressToCoordinates(start2.value));
+            });
+            resolve([start1Coords, start2Coords]);
         });
+        console.log(startCoords);
+
         // Construct request for nearby destination locations
         let request = {
             query: document.getElementById("destination").value,
             fields: ["name", "geometry", "formatted_address", "permanently_closed"]
         };
+
         // Find destinations near query
         let potentialDestinations = null;
         placesService.findPlaceFromQuery(request, function(response, status){
@@ -67,13 +67,27 @@ function initMap() {
                 window.alert("Unable to fulfill request. Error: " + status);
             }
         })
+    }
+
+    // Convert an address input to latLng coordinates
+    let convertAddressToCoordinates = async(address) => {
+        let geocodeRequest = {
+            address: address
+        };
+        geocoderService.geocode(geocodeRequest, function(response, status){
+            if (status === google.maps.GeocoderStatus.OK) {
+                console.log(response[0].geometry.location);
+                return response[0].geometry.location;
+            } else {
+                window.alert("Unable to fulfill request. Error: " + status);
+                return "No bueno";
+            }
+        });
     };
-    /*
-    let onUpdateHandler = function() {
-        calculateAndDisplayRoute(directionsService, directionsRenderer);
-    };
-     */
+
+    // Add event listener for "update params"
     document.getElementById("update-params").addEventListener("click", onUpdateHandler);
+
     // Add marker to map
     function addMarker(props) {
         // Create a marker instance
@@ -113,30 +127,12 @@ function initMap() {
     }
 }
 
-// Calculate origin coordinates
-function calculateOriginCoordinates(geocoderService) {
-    d = new $.Deferred();
-    start1Coords = convertAddressToCoordinates(geocoderService, start1.value);
-    start2Coords = convertAddressToCoordinates(geocoderService, start2.value);
-    d.resolve();
-    return d.promise();
-}
-
-// Convert an address input to latLng coordinates
-function convertAddressToCoordinates(geocoderService, address) {
-    let geocodeRequest = {
-        address: address
-    };
-    geocoderService.geocode(geocodeRequest, function(response, status){
-        if (status === google.maps.GeocoderStatus.OK) {
-            window.alert("returning latlng: " + response[0].geometry.location);
-            console.log(response[0].geometry.location);
-            return response[0].geometry.location;
-        } else {
-            window.alert("Unable to fulfill request. Error: " + status);
-            return null;
-        }
-    });
+// Find the midpoint of two coordinates
+function findMidpoint(map, coord1, coord2, callback) {
+    let midpoint = google.maps.geometry.spherical.interpolate(coord1, coord2, 0.5);
+    map.setCenter(midpoint);
+    map.setZoom(7);
+    setTimeout(callback, 2000);
 }
 
 // Display a travel route based on query (starting point and destination)
