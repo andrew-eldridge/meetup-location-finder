@@ -7,6 +7,9 @@ let transitMode = document.getElementById("transit-mode");
 
 // Initialize Google Maps API objects
 function initMap() {
+    // Add event listener for "update params"
+    document.getElementById("update-params").addEventListener("click", onUpdateHandler);
+    
     // Full view of United States
     let options = {
         zoom: 4,
@@ -21,72 +24,84 @@ function initMap() {
     let geocoderService = new google.maps.Geocoder();
     directionsRenderer.setMap(map);
 
-    // When user clicks "Update Parameters" run the following callback...
-    async function onUpdateHandler() {
-        // Convert starting location addresses to coordinates, then calculate midpoint and set map's center
-        let startCoords = await new Promise(async(resolve, reject) => {
-            let start1Coords = await new Promise(async(resolve, reject) => {
-                resolve(await convertAddressToCoordinates(start1.value));
-            });
-            let start2Coords = await new Promise(async(resolve, reject) => {
-                resolve(await convertAddressToCoordinates(start2.value));
-            });
-            resolve([start1Coords, start2Coords]);
-        });
-        console.log(startCoords);
+    // Find and set midpoint value of two provided coordinate pairs
+    async function setMidpoint(coords1, coords2) {
+        let midpoint = google.maps.geometry.spherical.interpolate(coords1, coords2, 0.5);
+        map.setCenter(midpoint);
+        map.setZoom(7);
+    }
 
-        // Construct request for nearby destination locations
-        let request = {
-            query: document.getElementById("destination").value,
-            fields: ["name", "geometry", "formatted_address", "permanently_closed"]
-        };
-
-        // Find destinations near query
-        let potentialDestinations = null;
-        placesService.findPlaceFromQuery(request, function(response, status){
-            if (status === google.maps.places.PlacesServiceStatus.OK) {
-                for (let i=0; i<response.length; i++) {
-                    // Skip locations that are permanently closed
-                    if (response[i].permanently_closed) {
-                        continue;
-                    }
-                    // Scrape needed details from response
-                    let props = {
-                        name: response[i].name,
-                        rating: response[i].rating,
-                        website: response[i].website,
-                        address: response[i].formatted_address,
-                        icon: response[i].icon,
-                        coords: response[i].geometry.location,
-                    };
-                    // Add marker for potential destination
-                    addMarker(props);
-                }
-                map.setCenter(response[0].geometry.location);
-            } else {
-                window.alert("Unable to fulfill request. Error: " + status);
-            }
-        })
+    // Abstraction layer for calculating/displaying new map midpoint
+    async function calculateMidpoint() {
+        const startCoords1 = convertAddressToCoordinates(start1.value);
+        const startCoords2 = convertAddressToCoordinates(start2.value);
+        return Promise.all([startCoords1, startCoords2]);
     }
 
     // Convert an address input to latLng coordinates
-    let convertAddressToCoordinates = async(address) => {
+    async function convertAddressToCoordinates(address) {
         let geocodeRequest = {
             address: address
         };
-        geocoderService.geocode(geocodeRequest, function(response, status){
-            if (status === google.maps.GeocoderStatus.OK) {
-                console.log(response[0].geometry.location);
-                return response[0].geometry.location;
-            } else {
-                window.alert("Unable to fulfill request. Error: " + status);
-                return "No bueno";
-            }
-        });
-    };
+        return await geocode(geocodeRequest);
+    }
 
-    // Add event listener for "update params"
-    document.getElementById("update-params").addEventListener("click", onUpdateHandler);
+    // Get geocoded coordinates
+    async function geocode(geocodeRequest) {
+        return new Promise(function(resolve, reject){
+            geocoderService.geocode(geocodeRequest, function(response, status){
+                if (status === google.maps.GeocoderStatus.OK) {
+                    console.log(response[0].geometry.location);
+                    resolve(response[0].geometry.location);
+                } else {
+                    window.alert("Unable to fulfill request. Error: " + status);
+                    reject(new Error("Unable to find requested location."));
+                }
+            });
+        });
+    }
+
+    // When user clicks "Update Parameters" run the following callback...
+    async function onUpdateHandler() {
+        // First, calculate midpoint values
+        calculateMidpoint().then((startCoords) => {
+            // Second, set the midpoint on map
+            setMidpoint(startCoords[0], startCoords[1]).then(() => {
+                // Construct request for nearby destination locations
+                let request = {
+                    query: document.getElementById("destination").value,
+                    fields: ["name", "geometry", "formatted_address", "permanently_closed"]
+                };
+
+                // Find destinations near query
+                let potentialDestinations = null;
+                placesService.findPlaceFromQuery(request, function(response, status){
+                    if (status === google.maps.places.PlacesServiceStatus.OK) {
+                        for (let i=0; i<response.length; i++) {
+                            // Skip locations that are permanently closed
+                            if (response[i].permanently_closed) {
+                                continue;
+                            }
+                            // Scrape needed details from response
+                            let props = {
+                                name: response[i].name,
+                                rating: response[i].rating,
+                                website: response[i].website,
+                                address: response[i].formatted_address,
+                                icon: response[i].icon,
+                                coords: response[i].geometry.location,
+                            };
+                            // Add marker for potential destination
+                            addMarker(props);
+                        }
+                        map.setCenter(response[0].geometry.location);
+                    } else {
+                        window.alert("Unable to fulfill request. Error: " + status);
+                    }
+                })
+            });
+        });
+    }
 
     // Add marker to map
     function addMarker(props) {
@@ -125,14 +140,6 @@ function initMap() {
             });
         }
     }
-}
-
-// Find the midpoint of two coordinates
-function findMidpoint(map, coord1, coord2, callback) {
-    let midpoint = google.maps.geometry.spherical.interpolate(coord1, coord2, 0.5);
-    map.setCenter(midpoint);
-    map.setZoom(7);
-    setTimeout(callback, 2000);
 }
 
 // Display a travel route based on query (starting point and destination)
