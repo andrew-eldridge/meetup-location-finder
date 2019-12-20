@@ -36,6 +36,9 @@
 #input-container input {
     margin-bottom: 20px;
 }
+#search-radius {
+    margin-bottom: 20px;
+}
 /* Decrease margin between the starting location inputs */
 #input-container #start1 {
     margin-bottom: 10px;
@@ -65,7 +68,7 @@
 #map {
     margin-left: 20px;
     width: 100%;
-    height: 450px;
+    height: 550px;
 }
 /* Format the navigation results */
 #result {

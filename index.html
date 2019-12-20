@@ -19,19 +19,27 @@
 <body>
     <div id="title">Meetup Location Finder</div>
     <div id="border"></div>
-    <div id="subtitle">Find the most convenient location to arrange a meeting given two separate starting locations. Simply enter starting points, desired destination (such as a restaurant or establishment name), and a mode of transportation.</div>
+    <div id="subtitle">Find the most convenient location to arrange a meeting given two separate starting locations. Simply enter starting points, a desired destination (such as a restaurant name), a search radius, and a mode of transportation.</div>
     <div id="content-container">
         <div id="input-container">
-            <b>From:</b>
+            <b>Origins:</b>
             <br>
             <input id="start1" type="text" placeholder="Starting location 1...">
             <input  id="start2" type="text" placeholder="Starting location 2...">
             <br>
-            <b>To:</b>
+            <b>Destination:</b>
             <br>
             <input id="destination" type="text" placeholder="Destination...">
             <br>
-            <b>By:</b>
+            <b>Search Radius:</b>
+            <br>
+            <select id="search-radius">
+                <option value="SMALL">Small (1km)</option>
+                <option value="MEDIUM">Medium (10km)</option>
+                <option value="LARGE">Large (50km)</option>
+            </select>
+            <br>
+            <b>Transport:</b>
             <br>
             <select id="travel-mode">
                 <option value="DRIVING">Driving</option>
