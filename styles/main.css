@@ -74,3 +74,29 @@
 #result {
     padding: 25px;
 }
+
+/* Vertical display for screens <1000px width */
+@media only screen and (max-width: 1000px) {
+    #content-container {
+        display: block;
+    }
+    #input-container {
+        max-width: 100%;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    #map {
+        margin-left: 0;
+    }
+}
+
+/* Move "update parameters" button at <600px */
+@media only screen and (max-width: 600px) {
+    #update-params {
+        position: unset;
+        bottom: unset;
+        right: unset;
+        margin-top: 20px;
+        display: block;
+    }
+}
